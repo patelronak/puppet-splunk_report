@@ -30,31 +30,7 @@ Puppet::Reports.register_report(:splunk) do
     @start_time = self.logs.first.time
     @elapsed_time = metrics["time"]["total"]
 
-    #send_metrics(self.metrics)
     send_event(output)
-  end
-
-  def send_metrics(metrics)
-    metadata = {
-      :sourcetype => 'json_puppet-metrics',
-      :source => 'puppet',
-      :host => @host,
-      :index => CONFIG[:index]
-    }
-
-    metrics.each { |metric,data|
-      data.values.each { |val|
-        name = "Puppet #{val[1]} #{metric}"
-        if metric == 'time'
-          unit = 'Seconds'
-        else
-          unit = 'Count'
-        end
-        value = val[2]
-        puts name,unit,value
-      }
-    }
-    splunk_post(event, metadata)
   end
 
   def send_event(output)
