@@ -29,34 +29,39 @@ Puppet::Reports.register_report(:splunk) do
     self.status == 'failed' ? @failed = true : @failed = false
     @start_time = self.logs.first.time
     @elapsed_time = metrics["time"]["total"]
+    @resource_count = metrics["resources"] || nil
 
     send_event(output)
   end
 
   def send_event(output)
     metadata = {
-          :sourcetype => 'json',
-          :source => 'puppet',
-          :host => @host,
-          :index => CONFIG[:index]
+      :sourcetype => 'json',
+      :source     => 'puppet',
+      :host       => @host,
+      :index      => CONFIG[:index]
     }
 
     event = {
-      :failed => @failed,
-      :start_time => @start_time,
-      :end_time => Time.now,
-      :elapsed_time => @elapsed_time,
-      :log => output}.to_json
+      :failed         => @failed,
+      :start_time     => @start_time,
+      :end_time       => Time.now,
+      :elapsed_time   => @elapsed_time,
+      :log            => output,
+      :resource_count => @resource_count
+    }
 
-    splunk_post(event, metadata)
+    marshalled_event = event.to_json
+
+    splunk_post(marshalled_event, metadata)
   end
 
   def splunk_post(event, metadata)
-    api_params = metadata.collect{ |k,v| [k, v].join('=') }.join('&')
-    url_params = URI.escape(api_params)
+    api_params    = metadata.collect{ |k,v| [k, v].join(' = ') }.join('&')
+    url_params    = URI.escape(api_params)
     endpoint_path = [API_ENDPOINT, url_params].join('?')
 
-    request = RestClient::Resource.new(
+    request       = RestClient::Resource.new(
       CONFIG[:server], :user => CONFIG[:user], :password => CONFIG[:password]
     )
 
