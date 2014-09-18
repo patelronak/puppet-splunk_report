@@ -21,9 +21,8 @@ Puppet::Reports.register_report(:splunk) do
   DESC
 
   def process
-    output = []
-    self.logs.each do |log|
-      output << log
+    output = self.logs.inject([]) do |a, log|
+      a.concat(["#{log.source}: #{log.message}"])
     end
 
     @host = self.host
@@ -71,7 +70,7 @@ Puppet::Reports.register_report(:splunk) do
       :start_time => @start_time,
       :end_time => Time.now,
       :elapsed_time => @elapsed_time,
-      :exception => output}.to_json
+      :log => output}.to_json
 
     splunk_post(event, metadata)
   end
