@@ -29,7 +29,17 @@ Puppet::Reports.register_report(:splunk) do
     self.status == 'failed' ? @failed = true : @failed = false
     @start_time = self.logs.first.time
     @elapsed_time = metrics["time"]["total"]
-    @resource_count = metrics["resources"] || nil
+
+    if metrics["resources"]
+      @resource_count = {
+        :failed      => metrics["resources"]["failed"],
+        :changed     => metrics["resources"]["changed"],
+        :out_of_sync => metrics["resources"]["out_of_sync"],
+        :total       => metrics["resources"]["total"]
+      }
+    else
+      @resource_count = nil
+    end
 
     send_event(output)
   end
