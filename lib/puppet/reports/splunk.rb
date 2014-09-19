@@ -57,7 +57,7 @@ Puppet::Reports.register_report(:splunk) do
   end
 
   def splunk_post(event, metadata)
-    api_params    = metadata.collect{ |k,v| [k, v].join(' = ') }.join('&')
+    api_params    = metadata.collect{ |k,v| [k, v].join('=') }.join('&')
     url_params    = URI.escape(api_params)
     endpoint_path = [API_ENDPOINT, url_params].join('?')
 
