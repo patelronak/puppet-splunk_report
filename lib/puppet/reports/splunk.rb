@@ -41,6 +41,28 @@ Puppet::Reports.register_report(:splunk) do
       @resource_count = nil
     end
 
+    cl_app  = "none"
+    cl_tier = "none"
+    cl_env  = "none"
+
+    node_facts = YAML.load_file("#{Puppet[:vardir]}/yaml/facts/#{self.host}.yaml")
+    node_facts.values.each do |key, value|
+      if ( key == "cl_app" )
+        cl_app = value
+      end
+      if ( key == "cl_tier" )
+        cl_tier = value
+      end
+      if ( key == "cl_env" )
+        cl_env = value
+      end
+    end
+    @myfacts = {
+      :cl_app  => cl_app,
+      :cl_tier => cl_tier,
+      :cl_env  => cl_env,
+    }
+
     send_event(output)
   end
 
@@ -58,7 +80,8 @@ Puppet::Reports.register_report(:splunk) do
       :end_time       => Time.now,
       :elapsed_time   => @elapsed_time,
       :log            => output,
-      :resource_count => @resource_count
+      :resource_count => @resource_count,
+      :facts          => @myfacts
     }
 
     marshalled_event = event.to_json
